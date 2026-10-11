@@ -1,0 +1,40 @@
+{
+  "source_label": "Simulated dataset",
+  "dataset_profile": {
+    "transaction_rows": 10000000,
+    "financial_missing_rate": 0.12,
+    "historical_churn_rate": 0.18,
+    "forecast_months": 12,
+    "risk_horizon_months": 3,
+    "quarters_per_year": 4,
+    "currency": "USD",
+    "display_scale_usd": 1000000,
+    "display_scale_thousands_usd": 1000
+  },
+  "simulator": {
+    "minimum_target_churn_rate": 0.13,
+    "maximum_target_churn_rate": 0.18,
+    "step": 0.005,
+    "default_target_churn_rate": 0.13
+  },
+  "model_metrics": {
+    "roc_auc": 0.8484811565951916,
+    "pr_auc_average_precision": 0.6702189992523169,
+    "recall_churn_class_at_cost_threshold": 0.7763157894736842,
+    "precision_at_cost_threshold": 0.4244604316546763,
+    "scale_pos_weight": 4.438066465256798,
+    "test_rows": 400,
+    "test_positive_rate": 0.19
+  },
+  "threshold_policy": {
+    "selected_threshold_12m": 0.19475172241648786,
+    "equivalent_threshold_3m": 0.05271109408601038,
+    "validation_contact_share": 0.2925,
+    "false_positive_touch_cost_usd": 3000.0,
+    "maximum_contact_share": 0.3,
+    "gross_margin_assumption": 0.7,
+    "lost_margin_fraction": 0.55,
+    "false_negative_cost_basis": "ACV x 70% gross margin x 55% average annual revenue fraction lost",
+    "business_logic": "False negatives are assigned a higher expected cost than false-positive retention touches."
+  }
+}

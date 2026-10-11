@@ -1,0 +1,11 @@
+rank,driver,mean_abs_shap,share_of_total_shap
+1,sla_breach_rate_90d,0.59755063,0.22376141
+2,support_response_p90_hours_90d,0.48022217,0.17982608
+3,spend_change_90d_pct,0.43358362,0.1623616
+4,service_breadth_90d,0.3314456,0.12411456
+5,payment_delay_days_avg_90d,0.2662394,0.099697165
+6,tenure_months,0.25647926,0.09604234
+7,acv_usd,0.13679956,0.051226556
+8,contract_tier,0.104831256,0.039255567
+9,missing_financial_share_90d,0.047649093,0.017842887
+10,region,0.01568062,0.0058718333
