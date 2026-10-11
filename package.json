@@ -1,0 +1,36 @@
+{
+  "name": "managed-it-churn-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static churn and revenue analysis with Vite, Chart.js and PapaParse, example SQL/Spark aggregation, and XGBoost/SHAP report analysis.",
+  "keywords": [
+    "client churn",
+    "revenue forecast",
+    "vite",
+    "chart.js",
+    "papaparse",
+    "sql",
+    "spark",
+    "xgboost",
+    "shap"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "verify:data": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.6",
+    "@fontsource/jetbrains-mono": "^5.2.6",
+    "chart.js": "^4.4.8",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "vite": "^6.4.4"
+  }
+}
