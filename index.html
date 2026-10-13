@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F6F7F9" />
+    <meta name="description" content="A simulated managed IT services churn and revenue forecast project." />
+    <title>Client Churn Risk &amp; Revenue Forecasting</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%228%22 fill=%22%231F3A5F%22/%3E%3Cpath d=%22M13 48h38M17 41l10-11 8 6 13-17%22 fill=%22none%22 stroke=%22white%22 stroke-width=%225%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div id="app">
+      <header class="site-header">
+        <div class="header-inner">
+          <div class="project-lockup">
+            <div>
+              <div class="project-title">Client Churn Risk &amp; Revenue Forecasting</div>
+              <div class="project-subtitle">Managed IT Services · Data Analytics Project</div>
+            </div>
+          </div>
+          <span class="dataset-pill"><span class="status-dot" aria-hidden="true"></span>Simulated dataset</span>
+        </div>
+        <nav class="primary-nav" aria-label="Project sections">
+          <div class="nav-inner">
+            <a href="#overview" data-page-link="overview" aria-current="page">Overview</a>
+            <a href="#method" data-page-link="method">Method</a>
+            <a href="#risk" data-page-link="risk">Risk Dashboard</a>
+            <a href="#drivers" data-page-link="drivers">Drivers</a>
+            <a href="#forecast" data-page-link="forecast">Forecast</a>
+            <a href="#strategy" data-page-link="strategy">Strategy</a>
+            <a href="#about" data-page-link="about">Report &amp; About</a>
+          </div>
+        </nav>
+      </header>
+
+      <div id="load-status" class="load-status" role="status" aria-live="polite">Loading project data…</div>
+      <main id="main-content" class="site-main" tabindex="-1">
+        <section id="overview" class="page-section" aria-labelledby="overview-title">
+          <div class="page-heading">
+            <h1 id="overview-title">Client churn risk and revenue forecasting</h1>
+            <p class="lede">I estimate churn risk, explain model signals and forecast revenue for a managed IT services portfolio.</p>
+            <p class="simulation-note"><strong>Simulated dataset.</strong> I did not receive real client data. These values show the method, not real client results.</p>
+          </div>
+          <div class="stat-grid" aria-label="Portfolio summary">
+            <article class="stat-card"><p class="stat-label">Expected churn in next 3 months</p><p class="stat-value mono" id="stat-expected-churners">—</p><p class="stat-foot" id="stat-expected-churners-foot">Sum of client probabilities</p></article>
+            <article class="stat-card"><p class="stat-label">Clients flagged for review</p><p class="stat-value mono" id="stat-flagged">—</p><p class="stat-foot" id="stat-flagged-foot">First-wave review list</p></article>
+            <article class="stat-card"><p class="stat-label"><span id="stat-risk-horizon">—</span>-month revenue at risk</p><p class="stat-value mono" id="stat-revenue-risk">—</p><p class="stat-foot">Current risk-adjusted forecast vs. baseline</p></article>
+            <article class="stat-card"><p class="stat-label">Target annual churn</p><p class="stat-value mono" id="stat-target-churn">—</p><p class="stat-foot" id="stat-target-foot">Target from project assumptions</p></article>
+          </div>
+
+          <section class="content-panel" aria-labelledby="constraints-title">
+            <div class="section-heading">
+              <div><h2 id="constraints-title">Scale, completeness and class balance</h2></div>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table constraints-table">
+                <thead><tr><th scope="col">Constraint</th><th scope="col">Problem</th><th scope="col">How it is handled</th></tr></thead>
+                <tbody id="constraints-body"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="note-panel" aria-label="Scope note">
+            <strong>Data loaded in the browser</strong>
+            <p>The browser loads the scored client files, not the raw transaction records.</p>
+          </section>
+        </section>
+
+        <section id="method" class="page-section" aria-labelledby="method-title" hidden>
+          <div class="page-heading">
+            <h1 id="method-title">From transaction records to account actions</h1>
+            <p class="lede">I group activity by client and month, then score each client.</p>
+          </div>
+          <section class="content-panel" aria-labelledby="pipeline-title">
+            <div class="section-heading"><div><h2 id="pipeline-title">How I prepared and scored the data</h2></div></div>
+            <ol class="pipeline-list" id="pipeline-list"></ol>
+          </section>
+          <section class="content-panel" aria-labelledby="sql-title">
+            <div class="section-heading"><div><h2 id="sql-title">Example SQL aggregation</h2></div></div>
+            <p class="panel-intro">This example groups billing, support and service records by client and month. I did not run it on real data.</p>
+            <pre class="code-block"><code>WITH imputed_billing AS (
+  SELECT client_id, month_start,
+         COALESCE(net_amount, tier_service_median,
+                  service_median, global_median) AS amount_filled,
+         CASE WHEN net_amount IS NULL THEN 1 ELSE 0 END AS amount_missing
+  FROM billing_transactions
+),
+client_month AS (
+  SELECT client_id, month_start,
+         SUM(amount_filled) AS monthly_spend,
+         AVG(amount_missing) AS missing_financial_share
+  FROM imputed_billing
+  GROUP BY client_id, month_start
+)
+SELECT client_id, month_start, monthly_spend,
+       missing_financial_share
+FROM client_month;</code></pre>
+          </section>
+          <section class="content-panel" aria-labelledby="metrics-title">
+            <div class="section-heading"><div><h2 id="metrics-title">Classification metrics</h2></div></div>
+            <p class="panel-intro">Churn is less common than renewal. I focus on how well the model finds churners, not accuracy alone.</p>
+            <div class="table-scroll">
+              <table class="data-table compact-table">
+                <thead><tr><th scope="col">Metric</th><th scope="col" class="numeric">Result</th><th scope="col">Use</th></tr></thead>
+                <tbody id="metrics-body"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="content-panel threshold-panel" aria-labelledby="threshold-title">
+            <div class="section-heading"><div><h2 id="threshold-title">Threshold follows business cost</h2></div></div>
+            <p id="threshold-copy" class="panel-intro"></p>
+            <div class="formula-row"><span class="formula-label">Annual to 3-month probability</span><code id="probability-formula">—</code></div>
+          </section>
+        </section>
+
+        <section id="risk" class="page-section" aria-labelledby="risk-title" hidden>
+          <div class="page-heading">
+            <div class="heading-row"><div><h1 id="risk-title">Risk Dashboard</h1></div></div>
+            <p class="lede">Search and filter client scores. A flag means the account needs review; it does not mean the client will leave.</p>
+          </div>
+          <section class="content-panel">
+            <div class="filter-bar" role="search" aria-label="Filter client risk table">
+              <label class="field search-field">Search clients<input id="client-search" type="search" placeholder="Client ID, tier, region or driver" autocomplete="off" /></label>
+              <label class="field">Contract tier<select id="tier-filter"><option value="">All tiers</option></select></label>
+              <label class="field">Region<select id="region-filter"><option value="">All regions</option></select></label>
+              <label class="check-field"><input id="flagged-filter" type="checkbox" /> Flagged only</label>
+              <button id="export-csv" class="button button-secondary" type="button">Export filtered CSV</button>
+            </div>
+            <div class="table-meta"><span id="table-count" aria-live="polite">Loading clients…</span><span>Sort by selecting a column heading.</span></div>
+            <div class="table-scroll risk-table-wrap">
+              <table class="data-table risk-table" id="risk-table">
+                <caption class="sr-only">Client churn scores. Select a client ID to see its details.</caption>
+                <thead><tr>
+                  <th scope="col"><button class="sort-button" data-sort="client_id" type="button">Client <span aria-hidden="true">↕</span></button></th>
+                  <th scope="col"><button class="sort-button" data-sort="contract_tier" type="button">Tier <span aria-hidden="true">↕</span></button></th>
+                  <th scope="col"><button class="sort-button" data-sort="region" type="button">Region <span aria-hidden="true">↕</span></button></th>
+                  <th scope="col" class="numeric"><button class="sort-button numeric" data-sort="churn_probability_next_3m" type="button">Next 3 months risk <span aria-hidden="true">↕</span></button></th>
+                  <th scope="col" class="numeric"><button class="sort-button numeric" data-sort="acv_usd" type="button">ACV <span aria-hidden="true">↕</span></button></th>
+                  <th scope="col">First-wave status</th>
+                  <th scope="col">Main driver</th>
+                </tr></thead>
+                <tbody id="risk-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+          <dialog id="client-dialog" class="client-dialog" aria-labelledby="client-dialog-title">
+            <div class="dialog-head"><div><h2 id="client-dialog-title">Client</h2></div><button id="close-dialog" class="icon-button" type="button" aria-label="Close client details">×</button></div>
+            <div id="client-detail-content"></div>
+          </dialog>
+        </section>
+
+        <section id="drivers" class="page-section" aria-labelledby="drivers-title" hidden>
+          <div class="page-heading">
+            <h1 id="drivers-title">Which signals contribute most to churn risk?</h1>
+            <p class="lede">I use SHAP values to see which inputs contribute most to the model score.</p>
+          </div>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Model driver importance</h2></div></div>
+            <div class="chart-frame driver-chart-frame"><canvas id="drivers-chart" role="img" aria-label="Horizontal bar chart showing the share of model driver contributions"></canvas></div>
+            <p class="small-note">These patterns are associations, not causes.</p>
+            <div class="table-scroll"><table class="data-table compact-table"><thead><tr><th scope="col">Rank</th><th scope="col">Driver</th><th scope="col" class="numeric">Mean absolute contribution</th><th scope="col" class="numeric">Share</th></tr></thead><tbody id="drivers-body"></tbody></table></div>
+          </section>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Feature averages for retained and churned clients</h2></div></div>
+            <p class="panel-intro">I compare average values for churned and retained client-months.</p>
+            <div class="table-scroll"><table class="data-table compact-table"><thead><tr><th scope="col">Feature</th><th scope="col" class="numeric">Churned mean</th><th scope="col" class="numeric">Retained mean</th><th scope="col" class="numeric">Difference</th></tr></thead><tbody id="comparison-body"></tbody></table></div>
+          </section>
+          <section class="takeaway-grid" id="driver-takeaways" aria-label="Driver takeaways"></section>
+        </section>
+
+        <section id="forecast" class="page-section" aria-labelledby="forecast-title" hidden>
+          <div class="page-heading">
+            <h1 id="forecast-title"><span id="forecast-period-label">—</span>-month revenue forecast</h1>
+            <p class="lede">The baseline keeps each client’s annual contract value for the year. The risk-adjusted line lowers revenue as clients are expected to leave.</p>
+          </div>
+          <div class="forecast-summary-grid" aria-label="Forecast totals">
+            <article class="stat-card"><p class="stat-label"><span id="forecast-period-label-summary">—</span>-month baseline revenue</p><p id="forecast-baseline-total" class="stat-value mono">—</p><p class="stat-foot" id="forecast-baseline-exact">Exact baseline</p></article>
+            <article class="stat-card"><p class="stat-label"><span id="forecast-period-risk-summary">—</span>-month risk-adjusted revenue</p><p id="forecast-risk-total" class="stat-value mono">—</p><p class="stat-foot" id="forecast-risk-exact">Exact risk-adjusted value</p></article>
+            <article class="stat-card"><p class="stat-label"><span id="forecast-period-gap-summary">—</span>-month revenue at risk</p><p id="forecast-revenue-gap" class="stat-value mono">—</p><p class="stat-foot" id="forecast-gap-exact">Exact revenue at risk</p></article>
+          </div>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Baseline and risk-adjusted revenue</h2></div></div>
+            <div class="chart-frame forecast-chart-frame"><canvas id="forecast-chart" role="img" aria-label="Line chart comparing no-churn revenue, current risk and the selected target by month"></canvas></div>
+            <div class="table-scroll"><table class="data-table compact-table"><thead><tr><th scope="col">Quarter</th><th scope="col" class="numeric">Baseline</th><th scope="col" class="numeric">Current risk-adjusted</th><th scope="col" class="numeric">Target scenario</th></tr></thead><tbody id="quarterly-body"></tbody></table></div>
+            <p class="formula-row"><span class="formula-label">Monthly hazard</span><code id="monthly-hazard-formula">—</code></p>
+            <p class="formula-row"><span class="formula-label">Monthly revenue</span><code id="monthly-revenue-formula">—</code></p>
+          </section>
+          <section class="content-panel simulator-panel" aria-labelledby="simulator-title">
+            <div class="section-heading"><div><h2 id="simulator-title">Retention Simulator</h2></div></div>
+            <p class="panel-intro">This slider gives a planning estimate. It is not a measured intervention result.</p>
+            <div class="slider-layout">
+              <div class="slider-control"><label for="target-churn-slider">Target annual churn <output id="target-churn-output" for="target-churn-slider">—</output></label><input id="target-churn-slider" type="range" min="0" max="0" step="0" value="0" /><div class="range-labels"><span id="target-min-label">—</span><span id="target-max-label">—</span></div></div>
+              <div class="simulator-results" aria-live="polite">
+                <div><span class="result-caption">Expected clients saved</span><strong id="sim-saved" class="mono">—</strong></div>
+                <div><span class="result-caption">Revenue protected over forecast</span><strong id="sim-protected" class="mono">—</strong></div>
+                <div><span class="result-caption">Target scenario revenue</span><strong id="sim-target-revenue" class="mono">—</strong></div>
+              </div>
+            </div>
+            <div class="formula-row"><span class="formula-label">Simulator risk adjustment</span><code>p′ = min(1, p12 × target / historical churn)</code></div>
+          </section>
+        </section>
+
+        <section id="strategy" class="page-section" aria-labelledby="strategy-title" hidden>
+          <div class="page-heading">
+            <h1 id="strategy-title">Retention actions tied to model signals</h1>
+            <p class="lede">I tied each action to a ranked signal and would check the account context before acting.</p>
+          </div>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Driver, action, review group and target</h2></div></div>
+            <div class="table-scroll"><table class="data-table strategy-table"><thead><tr><th scope="col">Driver</th><th scope="col">Action</th><th scope="col">Review group</th><th scope="col">Target</th></tr></thead><tbody id="strategy-body"></tbody></table></div>
+          </section>
+          <section class="impact-panel" aria-labelledby="impact-title">
+            <div><h2 id="impact-title">Expected churn impact</h2></div>
+            <div class="impact-values"><div><span>Baseline expected clients lost</span><strong id="impact-baseline" class="mono">—</strong></div><span class="impact-arrow" aria-hidden="true">→</span><div><span>Target expected clients lost</span><strong id="impact-target" class="mono">—</strong></div><div class="impact-saved"><span>Expected clients saved</span><strong id="impact-saved" class="mono">—</strong></div><div><span>Annual contract value from expected saves</span><strong id="impact-acv-protected" class="mono">—</strong></div></div>
+          </section>
+        </section>
+
+        <section id="about" class="page-section" aria-labelledby="about-title" hidden>
+          <div class="page-heading">
+            <h1 id="about-title">Report &amp; About</h1>
+            <p class="lede">Files and assumptions for this project.</p>
+          </div>
+          <section class="content-panel report-card">
+            <div><h2>Project report</h2><p class="panel-intro">A six-page report and an interactive version.</p></div>
+            <div class="report-actions"><a class="button button-secondary" href="report.html">Open interactive report</a><a id="report-download" class="button button-primary" href="data/report.pdf" download>Download report PDF</a><a class="report-file-link" href="data/ranked_client_list.csv" download>Download full ranked client list (CSV)</a></div>
+          </section>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>What the estimates mean</h2></div></div>
+            <ul class="assumptions-list" id="assumptions-list"></ul>
+          </section>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Use with care</h2></div></div>
+            <ul class="assumptions-list">
+              <li>I use simulated client records. They do not describe real clients or support client-specific decisions.</li>
+              <li>I assume the annual churn risk is spread evenly across months. Renewal timing may differ.</li>
+              <li>The forecast leaves out new clients, expansion, price changes, currency changes and non-churn revenue losses.</li>
+            </ul>
+          </section>
+          <section class="content-panel">
+            <div class="section-heading"><div><h2>Tools used</h2></div></div>
+            <ul class="assumptions-list"><li>Vite builds the static site.</li><li>Chart.js draws the charts. PapaParse reads the CSV files.</li><li>SQL/Spark appears only in the example aggregation query.</li><li>XGBoost scores churn risk. SHAP explains the report model results.</li></ul>
+          </section>
+        </section>
+      </main>
+      <footer class="site-footer"><div class="footer-inner"><span>Client Churn Risk &amp; Revenue Forecasting</span><span>Data Analytics Project</span></div></footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
