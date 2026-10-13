@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#F5F6F8" />
+  <meta name="description" content="An interactive report on client churn risk and revenue forecasting." />
+  <title>Client Churn Risk and Revenue Forecasting — Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #1F3A5F;
+      --ink: #171A1F;
+      --muted: #5A6270;
+      --gray: #89929D;
+      --line: #D9DEE4;
+      --pale: #EEF1F4;
+      --paper: #FFFFFF;
+      --page: #F5F6F8;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.65 var(--serif); }
+    a { color: var(--navy); text-underline-offset: 3px; }
+    button, input { font: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #42658A; outline-offset: 3px; }
+    .skip { position: absolute; left: 12px; top: -50px; z-index: 5; padding: 8px 12px; background: var(--navy); color: #fff; border-radius: 4px; }
+    .skip:focus { top: 12px; }
+    .topbar { position: sticky; top: 0; z-index: 4; background: #fff; border-bottom: 1px solid var(--line); font-family: var(--sans); }
+    .topbar-inner { max-width: 1080px; margin: auto; padding: 9px 20px; display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+    .brandline { color: var(--navy); font: 700 13px/1.25 var(--sans); min-width: 190px; }
+    .brandline small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 500; }
+    .navlinks { display: flex; gap: 3px; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+    .navlinks a { padding: 7px 8px; border-radius: 4px; color: var(--muted); font: 600 11px var(--sans); text-decoration: none; }
+    .navlinks a:hover, .navlinks a:focus-visible { color: var(--navy); background: var(--pale); }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 28px 24px 56px; }
+    .title-card, .section, .kpi { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+    .title-card { padding: 28px 30px; margin-bottom: 14px; border-top: 4px solid var(--navy); }
+    h1, h2, h3, p { margin-top: 0; }
+    .title-card h1 { margin: 0 0 8px; color: var(--navy); font-size: clamp(28px, 5vw, 40px); line-height: 1.13; letter-spacing: -.025em; }
+    .subtitle { margin: 0 0 14px; color: var(--muted); font-size: 16px; }
+    .notice { padding: 11px 14px; border: 1px solid var(--line); border-left: 3px solid var(--navy); border-radius: 5px; background: #F9FAFB; font: 13px/1.55 var(--sans); }
+    .notice strong { color: var(--navy); }
+    .actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px; font: 600 12px var(--sans); }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border: 1px solid var(--navy); border-radius: 5px; background: var(--navy); color: #fff; text-decoration: none; }
+    .button.secondary { border-color: #B7C0CA; background: #fff; color: var(--navy); }
+    .button:hover { filter: brightness(.96); }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+    .kpi { min-width: 0; padding: 13px 14px; }
+    .kpi-label { min-height: 29px; color: var(--muted); font: 600 10px/1.4 var(--sans); }
+    .kpi strong { display: block; margin-top: 6px; color: var(--navy); font: 700 21px/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+    .kpi small { display: block; margin-top: 6px; color: var(--muted); font: 11px/1.35 var(--sans); }
+    .section { margin: 14px 0; padding: 22px 24px; scroll-margin-top: 72px; }
+    .section h2 { margin: 0 0 11px; color: var(--navy); font-size: 21px; line-height: 1.25; }
+    .section h3 { margin: 17px 0 7px; color: var(--ink); font-size: 15px; line-height: 1.35; }
+    .section p { margin: 0 0 10px; }
+    .section p:last-child { margin-bottom: 0; }
+    .compact { font-size: 14px; }
+    .small { color: var(--muted); font-size: 12px; }
+    .formula { display: inline-block; max-width: 100%; margin: 2px 0 8px; padding: 8px 10px; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 5px; background: #F5F6F8; color: var(--navy); font: 12px/1.6 var(--mono); }
+    .code { overflow-x: auto; margin: 8px 0 4px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 6px; background: #F2F4F6; color: #263340; font: 11px/1.55 var(--mono); white-space: pre; }
+    .table-wrap { margin: 8px 0 0; overflow: auto; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .data-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 12px; line-height: 1.42; }
+    .data-table caption { caption-side: bottom; padding: 8px 10px; color: var(--muted); text-align: left; font: italic 11px/1.45 var(--serif); }
+    .data-table th { padding: 8px 9px; background: var(--navy); color: #fff; text-align: left; vertical-align: top; font: 700 10px/1.35 var(--sans); }
+    .data-table td { padding: 7px 9px; border-top: 1px solid var(--line); vertical-align: top; }
+    .data-table tbody tr:nth-child(even) { background: #F8F9FA; }
+    .data-table tbody tr:hover { background: #E9EDF1; }
+    .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    .tight { min-width: 0; }
+    .caption { margin: 6px 0 9px; color: var(--muted); font: italic 11px/1.45 var(--serif); }
+    .caption strong { color: var(--navy); font-style: normal; }
+    .driver-chart { display: grid; gap: 7px; }
+    .driver-row { display: grid; grid-template-columns: 155px minmax(80px, 1fr) 42px; align-items: center; gap: 10px; font: 12px/1.25 var(--sans); }
+    .driver-label { color: #303844; }
+    .bar-track { height: 9px; overflow: hidden; border-radius: 8px; background: #E8EBEF; }
+    .bar-fill { width: 0; height: 100%; border-radius: 8px; background: var(--gray); transition: width .45s ease; }
+    .driver-row:nth-child(-n+3) .bar-fill { background: var(--navy); }
+    .visible .bar-fill { width: var(--bar); }
+    .driver-value { color: var(--muted); text-align: right; font: 11px var(--mono); }
+    .forecast-wrap { margin: 8px 0 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+    .forecast-svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .forecast-svg text { fill: var(--muted); font-family: var(--sans); font-size: 11px; }
+    .forecast-svg .grid { stroke: #E4E7EB; stroke-width: 1; }
+    .forecast-svg .baseline { fill: none; stroke: var(--gray); stroke-width: 2; stroke-dasharray: 7 5; }
+    .forecast-svg .riskline { fill: none; stroke: var(--navy); stroke-width: 3; }
+    .forecast-svg .gap { fill: #E7EAEE; }
+    .forecast-svg .point { fill: var(--navy); stroke: #fff; stroke-width: 2; }
+    .forecast-svg .active-point { fill: #fff; stroke: var(--navy); stroke-width: 3; }
+    .legend { display: flex; gap: 15px; flex-wrap: wrap; padding: 3px 4px 0; color: var(--muted); font: 11px var(--sans); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 21px; height: 0; border-top: 2px solid var(--navy); }
+    .legend i.dashed { border-top: 2px dashed var(--gray); }
+    .legend i.shaded { height: 10px; border: 0; background: #E7EAEE; }
+    .month-control { display: grid; grid-template-columns: 1fr auto; gap: 9px; align-items: center; margin: 12px 2px 2px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: #F8F9FA; font: 12px var(--sans); }
+    .month-control label { grid-column: 1/-1; color: var(--muted); font-weight: 650; }
+    .month-control input { width: 100%; accent-color: var(--navy); }
+    .month-readout { min-width: 180px; color: var(--navy); text-align: right; font: 700 11px/1.45 var(--mono); }
+    .scenario-lines { padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; background: #F8F9FB; font: 12px/1.65 var(--sans); }
+    .action-table { min-width: 690px; }
+    .steps { margin: 8px 0; padding-left: 21px; }
+    .steps li { margin: 6px 0; padding-left: 3px; }
+    .steps li::marker { color: var(--navy); }
+    .foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; padding-top: 11px; border-top: 1px solid var(--line); color: var(--muted); font: 11px/1.5 var(--sans); }
+    .motion-ready .reveal { opacity: 0; transform: translateY(7px); transition: opacity .32s ease, transform .32s ease; }
+    .motion-ready .reveal.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 760px) {
+      .topbar-inner { display: block; padding: 9px 12px; }
+      .brandline { margin-bottom: 6px; }
+      .navlinks a { padding: 6px 7px; }
+      .wrap { padding: 17px 12px 36px; }
+      .title-card { padding: 20px 17px; }
+      .section { padding: 17px 15px; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .driver-row { grid-template-columns: 126px minmax(70px, 1fr) 38px; gap: 8px; font-size: 11px; }
+      .month-control { grid-template-columns: 1fr; }
+      .month-control label { grid-column: auto; }
+      .month-readout { text-align: left; }
+      .foot { flex-direction: column; }
+    }
+    @media (max-width: 390px) {
+      .kpi strong { font-size: 18px; }
+      .driver-row { grid-template-columns: 103px minmax(45px, 1fr) 34px; gap: 6px; font-size: 10px; }
+      .section h2 { font-size: 19px; }
+      .title-card h1 { font-size: 28px; }
+      .data-table { font-size: 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      .motion-ready .reveal { opacity: 1; transform: none; }
+    }
+    @media print {
+      body { background: #fff; }
+      .topbar, .actions, .month-control { display: none !important; }
+      .wrap { max-width: none; padding: 0; }
+      .title-card, .section, .kpi { break-inside: avoid; border-color: #aaa; }
+      .section { break-before: page; margin: 0; padding: 12mm 9mm; }
+      .title-card { margin-bottom: 6mm; }
+      .kpis { grid-template-columns: repeat(4, 1fr); }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#report-title">Skip to report</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brandline">Client Churn Risk and Revenue Forecasting<small>Managed IT Services · Data Analytics Project</small></div>
+      <nav class="navlinks" aria-label="Report sections">
+        <a href="#s1">1 Overview</a><a href="#s2">2 Data</a><a href="#s3">3 Model</a><a href="#s4">4 Risk</a><a href="#s5">5 Drivers</a><a href="#s6">6 Revenue</a><a href="#s7">7 Actions</a><a href="#s8">8 Conclusion</a>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap" id="report-main">
+    <header class="title-card reveal">
+      <h1 id="report-title">Client Churn Risk and Revenue Forecasting</h1>
+      <p class="subtitle">Question 2 · Managed IT Services · 200 client records</p>
+      <div class="notice"><strong>Simulation note.</strong> I use simulated client records, not real company data. The values explain the method and are not real account results.</div>
+      <div class="actions"><a class="button" href="./data/report.pdf" download>Download six-page PDF</a><a class="button secondary" href="./data/ranked_client_list.csv" download>Download ranked client list</a></div>
+    </header>
+    <section class="kpis reveal" aria-label="Calculated summary">
+      <article class="kpi"><div class="kpi-label">Clients scored</div><strong id="kpi-clients">—</strong><small>Client-level score file</small></article>
+      <article class="kpi"><div class="kpi-label">Expected churn in next 3 months</div><strong id="kpi-expected">—</strong><small id="kpi-expected-caption">—</small></article>
+      <article class="kpi"><div class="kpi-label">Clients flagged for review</div><strong id="kpi-flagged">—</strong><small>First-wave review group</small></article>
+      <article class="kpi"><div class="kpi-label">12-month revenue at risk</div><strong id="kpi-rev-risk">—</strong><small>Baseline less risk-adjusted forecast</small></article>
+    </section>
+
+    <section class="section reveal" id="s1">
+      <h2>1. Problem and approach</h2>
+      <p>I study a managed IT services portfolio that provides infrastructure management, cloud migration, security and 24/7 support. I estimate which clients may not renew, review the signals behind their scores, forecast revenue and plan retention work.</p>
+      <p>The portfolio has about 10 million transaction rows, 12% missing financial values and an 18% annual churn rate. The transaction volume is a scale assumption. I define churn as not renewing within 12 months and interpret “reduce churn by 5%” as a five-percentage-point change, from 18% to 13%. All amounts are in USD.</p>
+      <p>At the current scores, the no-churn baseline is <strong id="summary-baseline-exact">—</strong> (<span id="summary-baseline">—</span>), the risk-adjusted forecast is <strong id="summary-risk-exact">—</strong> (<span id="summary-risk">—</span>), and the difference is <strong id="summary-gap-exact">—</strong> (<span id="summary-gap">—</span>). The scores sum to <strong id="summary-annual-exits">—</strong> expected annual exits.</p>
+    </section>
+
+    <section class="section reveal" id="s2">
+      <h2>2. Data preparation</h2>
+      <p>I would use SQL or Spark to group billing, support and service events into one row per client per month. At 200 clients and about 25 monthly snapshots, this creates roughly 5,000 client-month records. The 10 million raw transactions set the scale; they are not loaded in this project.</p>
+      <p><strong>Example query.</strong> This SQL groups billing, support and service events by client and month. I did not run it on real data.</p>
+      <figure><pre class="code">SELECT client_id, month,
+       SUM(amount) AS monthly_spend,
+       AVG(CASE WHEN sla_met = 0 THEN 1.0 ELSE 0.0 END)
+           AS sla_breach_rate,
+       percentile_approx(response_hours, 0.90)
+           AS response_p90_hours,
+       AVG(payment_delay_days) AS payment_delay_days,
+       COUNT(DISTINCT service) AS service_breadth
+FROM client_activity
+GROUP BY client_id, month;</pre><figcaption class="caption"><strong>Listing 1.</strong> Example SQL aggregation by client and month.</figcaption></figure>
+      <p><strong>Missing financial values.</strong> I keep incomplete records and fill gaps with training-period medians from similar service and contract groups. I also retain a flag for missing financial values.</p>
+      <p><strong>Churn labels.</strong> I give churn cases more weight and check recall and PR-AUC rather than accuracy alone. At an 18% churn rate, an all-renew prediction is 82% accurate but finds no churners. I train on earlier months and test on later months.</p>
+    </section>
+
+    <section class="section reveal" id="s3">
+      <h2>3. Model and results</h2>
+      <p>I use an XGBoost classifier, a tree-based model that combines many decision trees. Its 10 inputs cover SLA breaches, support response time, spend change, services used, payment delay, tenure, annual contract value, contract tier, region and missing financial data.</p>
+      <p>The test set contains <strong id="test-rows">—</strong> later client-month records, with a <strong id="test-rate">—</strong> churn rate. Table 1 shows the results. I use a contact limit of <strong id="contact-limit">—</strong> and compare the assumed <strong id="call-cost">—</strong> outreach cost with the cost of a missed renewal.</p>
+      <div class="table-wrap"><table class="data-table"><caption><strong>Table 1.</strong> Model results on the later client-month test records.</caption><thead><tr><th scope="col">Metric</th><th scope="col">Result</th><th scope="col">Meaning</th></tr></thead><tbody id="validation-rows"></tbody></table></div>
+    </section>
+
+    <section class="section reveal" id="s4">
+      <h2>4. Clients likely to churn in the next 3 months</h2>
+      <p>If <span class="mono">p12</span> is annual churn probability, I assume a steady monthly rate and calculate near-term probability as:</p>
+      <div class="formula" id="p3-formula">p3 = 1 - (1 - p12)<sup>3/12</sup></div>
+      <p>The average 3-month risk is <strong id="avg-p3">—</strong>, which sums to <strong id="expected-p3-inline">—</strong> expected exits. The first-wave list contains <strong id="flagged-inline">—</strong> clients. It accounts for <strong id="flagged-expected">—</strong> expected near-term exits and <strong id="flagged-acv">—</strong> in annual contract value. The flagged group includes <span id="tier-mix">—</span>.</p>
+      <p>I would start with the highest-priority clients and review the rest of the flagged group each month. Table 2 lists the top ten records by risk score.</p>
+      <div class="table-wrap"><table class="data-table tight"><caption><strong>Table 2.</strong> Ten highest-priority client records. Values are rounded; client IDs are examples.</caption><thead><tr><th scope="col">#</th><th scope="col">Client</th><th scope="col">Tier</th><th scope="col" class="num">Contract value</th><th scope="col" class="num">12-month risk</th><th scope="col" class="num">3-month risk</th><th scope="col">Main driver</th></tr></thead><tbody id="top-clients"></tbody></table></div>
+    </section>
+
+    <section class="section reveal" id="s5">
+      <h2>5. Main factors behind churn</h2>
+      <p>I use SHAP values to show how the model shares a score across its input features. Figure 1 ranks the mean absolute contribution. The three leading features account for <strong id="top3-share">—</strong> of total importance.</p>
+      <figure class="forecast-wrap" style="padding:12px 14px">
+        <div id="driver-chart" class="driver-chart" role="img" aria-label="Horizontal bar chart showing each model driver share"></div>
+        <figcaption class="caption"><strong>Figure 1.</strong> Model driver importance by share of mean absolute contribution.</figcaption>
+      </figure>
+      <p class="small">These patterns are associations, not causes.</p>
+      <p>Table 3 compares average feature values for client-months labelled churned and retained. P90 is the response time at or below which 90% of responses fall.</p>
+      <div class="table-wrap"><table class="data-table"><caption><strong>Table 3.</strong> Feature averages for retained and churned client-month records.</caption><thead><tr><th scope="col">Feature</th><th scope="col" class="num">Retained mean</th><th scope="col" class="num">Churned mean</th><th scope="col" class="num">Difference</th></tr></thead><tbody id="comparison-rows"></tbody></table></div>
+      <ul class="steps"><li>Service quality stands out: the churned group has a higher breach rate and slower response time.</li><li>Spend falls more in the churned group, and those clients use fewer services.</li><li>I would check each client’s situation before deciding what to do.</li></ul>
+    </section>
+
+    <section class="section reveal" id="s6">
+      <h2>6. Revenue forecast for the next 12 months</h2>
+      <p>I spread each client’s annual contract value evenly across 12 months. For annual probability <span class="mono">p12</span>, I calculate a steady monthly hazard <span class="mono">h = 1 - (1 - p12)<sup>1/12</sup></span>. Expected revenue counts clients who are still active at the start of each month. The forecast leaves out new clients, expansion, price changes and currency changes.</p>
+      <p>Figure 2 compares the no-churn baseline with the client-risk forecast. The annual values are <strong id="baseline-total">—</strong> at baseline, <strong id="risk-total">—</strong> after risk adjustment and <strong id="total-gap">—</strong> at risk (<strong id="gap-share">—</strong> of baseline).</p>
+      <figure class="forecast-wrap">
+        <svg class="forecast-svg" id="forecast-svg" viewBox="0 0 820 350" role="img" aria-label="Monthly no-churn baseline and risk-adjusted revenue forecast"></svg>
+        <div class="legend"><span><i class="dashed"></i>No-churn baseline</span><span><i></i>Risk-adjusted forecast</span><span><i class="shaded"></i>Revenue at risk</span></div>
+        <div class="month-control"><label for="month-slider">Inspect a forecast month</label><input id="month-slider" type="range" min="1" max="12" step="1" value="1" /><output id="month-readout" class="month-readout" aria-live="polite">Loading forecast…</output></div>
+        <figcaption class="caption"><strong>Figure 2.</strong> Monthly no-churn baseline and risk-adjusted revenue. Use the slider to inspect a month.</figcaption>
+      </figure>
+      <div class="table-wrap"><table class="data-table"><caption><strong>Table 4.</strong> Quarterly baseline, risk-adjusted forecast and revenue at risk. Totals use unrounded calculations.</caption><thead><tr><th scope="col">Period</th><th scope="col" class="num">Baseline</th><th scope="col" class="num">Risk-adjusted</th><th scope="col" class="num">At risk</th></tr></thead><tbody id="quarterly-rows"></tbody></table></div>
+      <p>The probability-weighted annual contract value of expected churners is <strong id="weighted-arr">—</strong>. That is different from forecast revenue at risk, which counts revenue month by month.</p>
+      <h3>Retention simulator scenarios</h3>
+      <div id="scenario-lines" class="scenario-lines" aria-live="polite">Loading scenarios…</div>
+      <p class="small">These are planning estimates, not measured program results.</p>
+    </section>
+
+    <section class="section reveal" id="s7">
+      <h2>7. Retention actions and targets</h2>
+      <p>I would start with the 60 flagged clients. Table 5 links each ranked signal to an action and a target.</p>
+      <div class="table-wrap"><table class="data-table action-table"><caption><strong>Table 5.</strong> Retention actions and proposed operating targets for the flagged group.</caption><thead><tr><th scope="col">Signal</th><th scope="col">Action</th><th scope="col">Target</th></tr></thead><tbody>
+        <tr><td><strong>SLA breaches</strong></td><td>I would review each breach, name an escalation contact and discuss service credits after a breach.</td><td>Breach rate near 3%</td></tr>
+        <tr><td><strong>Support response</strong></td><td>I would use a priority queue and 24/7 escalation, then review open tickets weekly.</td><td>Response time near 6 hours</td></tr>
+        <tr><td><strong>Falling spend</strong></td><td>I would flag a 90-day spend drop over 10% and arrange an account meeting within two weeks.</td><td>Reverse the decline within a quarter</td></tr>
+        <tr><td><strong>Services used</strong></td><td>I would ask which services the client needs and help set up services already in the contract.</td><td>Move from about 2.2 to 3 services per client</td></tr>
+        <tr><td><strong>Payment delay</strong></td><td>I would check invoice accuracy, settle disputes early and discuss flexible terms when appropriate.</td><td>Average delay under 10 days</td></tr>
+      </tbody></table></div>
+      <p style="margin-top:12px">At an 18% annual rate, the portfolio implies <strong id="annual-exits">—</strong> expected annual exits. The 13% target implies <strong id="target-exits">—</strong>, or <strong id="saved-clients">—</strong> expected clients saved. At about <strong id="flagged-average-acv">—</strong> in average flagged-client annual contract value, that is about <strong id="acv-protected">—</strong> in annual contract value. The 13% simulator separately estimates <strong id="sim-protected">—</strong> of risk-adjusted revenue protected over the 12-month forecast.</p>
+    </section>
+
+    <section class="section reveal" id="s8">
+      <h2>8. Conclusion, limitations and next steps</h2>
+      <p>Service quality and falling spend are the clearest signals in this analysis. About 11.6 exits are expected in the next 3 months, with 60 clients flagged for review. The 12-month forecast places about $8.3M at risk. I would check account context before acting.</p>
+      <h3>Next steps</h3>
+      <ol class="steps"><li>Re-run the analysis on real billing, support and contract data. Confirm the renewal definition and data quality.</li><li>Pilot actions on part of the flagged group and compare renewal and revenue outcomes.</li><li>Track churn, saves and revenue monthly, then review the assumptions with finance and service teams.</li></ol>
+      <div class="notice"><strong>Limitations.</strong> The client records are simulated and do not describe real clients. I assume yearly risk is spread evenly across months. The forecast leaves out new clients, expansion, price changes, currency changes and revenue losses unrelated to churn.</div>
+    </section>
+    <footer class="foot"><span>Client Churn Risk and Revenue Forecasting · Question 2</span><span id="load-note" role="status">Loading project data…</span></footer>
+  </main>
+  <script>
+    const currency = 'USD';
+    const labels = {
+      sla_breach_rate_90d: 'SLA breach rate',
+      support_response_p90_hours_90d: 'Support response time',
+      spend_change_90d_pct: '90-day spend change',
+      service_breadth_90d: 'Services per client',
+      payment_delay_days_avg_90d: 'Payment delay',
+      tenure_months: 'Tenure',
+      acv_usd: 'Annual contract value',
+      contract_tier: 'Contract tier',
+      missing_financial_share_90d: 'Missing financial data',
+      region: 'Region'
+    };
+
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const parseRow = (line) => {
+        const values = [];
+        let value = '';
+        let quoted = false;
+        for (let index = 0; index < line.length; index += 1) {
+          const char = line[index];
+          if (char === '"') {
+            if (quoted && line[index + 1] === '"') { value += '"'; index += 1; }
+            else quoted = !quoted;
+          } else if (char === ',' && !quoted) { values.push(value); value = ''; }
+          else value += char;
+        }
+        values.push(value);
+        return values;
+      };
+      const headers = parseRow(lines.shift());
+      return lines.filter(Boolean).map((line) => {
+        const values = parseRow(line);
+        return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? '']));
+      });
+    }
+
+    function rounded(value, digits = 0) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 0;
+      const result = Number(number.toFixed(digits));
+      return Object.is(result, -0) || result === 0 ? 0 : result;
+    }
+    const fmtNum = (value, digits = 0) => new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(rounded(value, digits));
+    const fmtPct = (value, digits = 1) => new Intl.NumberFormat('en-US', { style: 'percent', minimumFractionDigits: digits, maximumFractionDigits: digits }).format(rounded(Number(value) * 100, digits) / 100);
+    const fmtUsd = (value, digits = 0) => new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: digits, maximumFractionDigits: digits }).format(rounded(value, digits));
+    const fmtM = (value, digits = 1) => `${fmtUsd(Number(value) / 1_000_000, digits)}M`;
+    function fmtScenario(value) {
+      const millions = rounded(Number(value) / 1_000_000, 2);
+      return `${fmtUsd(millions, millions === 0 ? 1 : 2)}M`;
+    }
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    const labelFor = (key) => labels[key] || String(key).replaceAll('_', ' ');
+
+    function makeForecastSvg(monthly, baseline) {
+      const svg = document.getElementById('forecast-svg');
+      const width = 820, height = 350, left = 68, right = 22, top = 34, bottom = 48;
+      const plotWidth = width - left - right, plotHeight = height - top - bottom;
+      const base = baseline / 1_000_000;
+      const values = monthly.map((value) => value / 1_000_000);
+      const low = Math.floor((Math.min(base, ...values) - .15) * 2) / 2;
+      const high = Math.ceil((Math.max(base, ...values) + .15) * 2) / 2;
+      const x = (index) => left + plotWidth * index / Math.max(1, values.length - 1);
+      const y = (value) => top + plotHeight * (high - value) / (high - low);
+      const line = values.map((value, index) => `${index ? 'L' : 'M'} ${x(index).toFixed(1)} ${y(value).toFixed(1)}`).join(' ');
+      const area = `M ${x(0)} ${y(base)} ${values.map((value, index) => `L ${x(index).toFixed(1)} ${y(value).toFixed(1)}`).join(' ')} ${values.map((_, index) => index).reverse().map((index) => `L ${x(index).toFixed(1)} ${y(base).toFixed(1)}`).join(' ')} Z`;
+      let grid = '';
+      for (let step = 0; step <= 4; step += 1) {
+        const value = low + (high - low) * step / 4;
+        grid += `<line class="grid" x1="${left}" y1="${y(value)}" x2="${width - right}" y2="${y(value)}"/><text x="${left - 9}" y="${y(value) + 4}" text-anchor="end">$${value.toFixed(1)}M</text>`;
+      }
+      const points = values.map((value, index) => `<circle class="point" cx="${x(index)}" cy="${y(value)}" r="3.5"><title>Month ${index + 1}: ${fmtM(monthly[index])}</title></circle>`).join('');
+      const monthLabels = values.map((_, index) => `<text x="${x(index)}" y="${height - 18}" text-anchor="middle">M${index + 1}</text>`).join('');
+      svg.innerHTML = `<title>Baseline and risk-adjusted monthly revenue</title><desc>The baseline is ${fmtM(baseline / monthly.length)} per month. Risk-adjusted revenue ends at ${fmtM(monthly[monthly.length - 1])} in the last forecast month.</desc>${grid}<path class="gap" d="${area}"/><path class="baseline" d="M ${left} ${y(base)} L ${width - right} ${y(base)}"/><path class="riskline" d="${line}"/>${points}<circle id="selected-point" class="active-point" cx="${x(0)}" cy="${y(values[0])}" r="7"/><text x="${left + plotWidth / 2}" y="${height - 2}" text-anchor="middle">Forecast month</text>${monthLabels}`;
+      svg.dataset.xs = JSON.stringify(values.map((_, index) => x(index)));
+      svg.dataset.ys = JSON.stringify(values.map((value) => y(value)));
+    }
+
+    function updateMonth(month, monthly, baseline) {
+      const index = Number(month) - 1;
+      const svg = document.getElementById('forecast-svg');
+      const point = document.getElementById('selected-point');
+      const xs = JSON.parse(svg.dataset.xs);
+      const ys = JSON.parse(svg.dataset.ys);
+      point.setAttribute('cx', xs[index]);
+      point.setAttribute('cy', ys[index]);
+      const baselineMonthly = baseline / Number(monthly.length);
+      document.getElementById('month-readout').textContent = `Month ${month}: ${fmtM(monthly[index])} risk-adjusted · ${fmtM(baselineMonthly)} baseline · ${fmtM(baselineMonthly - monthly[index])} at risk`;
+    }
+
+    function calculateScenario(scores, months, historicalRate, targetRate) {
+      const adjusted = scores.map((score) => Math.min(1, score.p12 * targetRate / historicalRate));
+      const monthly = Array.from({ length: months }, (_, index) => scores.reduce((sum, score, clientIndex) => {
+        const probability = adjusted[clientIndex];
+        const hazard = 1 - Math.pow(1 - probability, 1 / months);
+        return sum + score.acv / months * Math.pow(1 - hazard, index);
+      }, 0));
+      const currentMonthly = Array.from({ length: months }, (_, index) => scores.reduce((sum, score) => {
+        const hazard = 1 - Math.pow(1 - score.p12, 1 / months);
+        return sum + score.acv / months * Math.pow(1 - hazard, index);
+      }, 0));
+      const clientsSaved = scores.reduce((sum, score, index) => sum + score.p12 - adjusted[index], 0);
+      const currentTotal = currentMonthly.reduce((sum, value) => sum + value, 0);
+      const targetTotal = monthly.reduce((sum, value) => sum + value, 0);
+      return { clientsSaved, revenueProtected: targetTotal - currentTotal, targetRevenue: targetTotal };
+    }
+
+    function renderReport(metrics, scores, drivers, panel) {
+      const config = metrics.dataset_profile;
+      const simulator = metrics.simulator;
+      const model = metrics.model_metrics;
+      const policy = metrics.threshold_policy;
+      const months = Number(config.forecast_months);
+      const riskMonths = Number(config.risk_horizon_months);
+      const flagged = scores.filter((score) => score.flagged);
+      const expectedThreeMonths = scores.reduce((sum, score) => sum + score.p3, 0);
+      const expectedAnnual = scores.reduce((sum, score) => sum + score.p12, 0);
+      const baseline = scores.reduce((sum, score) => sum + score.acv, 0);
+      const monthly = Array.from({ length: months }, (_, index) => scores.reduce((sum, score) => {
+        const hazard = 1 - Math.pow(1 - score.p12, 1 / months);
+        return sum + score.acv / months * Math.pow(1 - hazard, index);
+      }, 0));
+      const riskTotal = monthly.reduce((sum, value) => sum + value, 0);
+      const gap = baseline - riskTotal;
+      const weightedAcv = scores.reduce((sum, score) => sum + score.acv * score.p12, 0);
+      const flaggedExpected = flagged.reduce((sum, score) => sum + score.p3, 0);
+      const flaggedAcv = flagged.reduce((sum, score) => sum + score.acv, 0);
+      const tierCounts = {};
+      flagged.forEach((score) => { tierCounts[score.contract_tier] = (tierCounts[score.contract_tier] || 0) + 1; });
+      const tierMix = ['Core', 'Advanced', 'Strategic'].filter((tier) => tierCounts[tier]).map((tier) => `${fmtNum(tierCounts[tier])} ${tier}`).join(', ');
+
+      document.getElementById('kpi-clients').textContent = fmtNum(scores.length);
+      document.getElementById('kpi-expected').textContent = fmtNum(expectedThreeMonths, 1);
+      document.getElementById('kpi-expected-caption').textContent = `Across ${fmtNum(scores.length)} client records`;
+      document.getElementById('kpi-flagged').textContent = fmtNum(flagged.length);
+      document.getElementById('kpi-rev-risk').textContent = fmtM(gap);
+      document.getElementById('summary-baseline-exact').textContent = fmtUsd(baseline);
+      document.getElementById('summary-baseline').textContent = fmtM(baseline);
+      document.getElementById('summary-risk-exact').textContent = fmtUsd(riskTotal);
+      document.getElementById('summary-risk').textContent = fmtM(riskTotal);
+      document.getElementById('summary-gap-exact').textContent = fmtUsd(gap);
+      document.getElementById('summary-gap').textContent = fmtM(gap);
+      document.getElementById('summary-annual-exits').textContent = fmtNum(expectedAnnual, 1);
+
+      const divisor = (a, b) => b ? divisor(b, a % b) : a;
+      const common = divisor(riskMonths, months);
+      document.getElementById('p3-formula').innerHTML = `p${riskMonths} = 1 - (1 - p${months})<sup>${riskMonths / common}/${months / common}</sup>`;
+      document.getElementById('test-rows').textContent = fmtNum(model.test_rows);
+      document.getElementById('test-rate').textContent = fmtPct(model.test_positive_rate, 0);
+      document.getElementById('contact-limit').textContent = fmtPct(policy.maximum_contact_share, 0);
+      document.getElementById('call-cost').textContent = fmtUsd(policy.false_positive_touch_cost_usd);
+      const metricRows = [
+        ['ROC-AUC', fmtNum(model.roc_auc, 2), 'How often a churner ranks above a client who renews.'],
+        ['PR-AUC', fmtNum(model.pr_auc_average_precision, 2), 'Summarises precision and recall for churn cases.'],
+        ['Recall', fmtPct(model.recall_churn_class_at_cost_threshold, 0), 'Share of churn cases found in the test set.'],
+        ['Precision', fmtPct(model.precision_at_cost_threshold, 0), 'Share of test alerts that were churn cases.']
+      ];
+      document.getElementById('validation-rows').innerHTML = metricRows.map((row) => `<tr><td><strong>${esc(row[0])}</strong></td><td class="mono">${esc(row[1])}</td><td>${esc(row[2])}</td></tr>`).join('');
+
+      document.getElementById('avg-p3').textContent = fmtPct(expectedThreeMonths / scores.length, 1);
+      document.getElementById('expected-p3-inline').textContent = fmtNum(expectedThreeMonths, 1);
+      document.getElementById('flagged-inline').textContent = fmtNum(flagged.length);
+      document.getElementById('flagged-expected').textContent = fmtNum(flaggedExpected, 1);
+      document.getElementById('flagged-acv').textContent = fmtM(flaggedAcv);
+      document.getElementById('tier-mix').textContent = tierMix;
+      const topScores = [...scores].sort((a, b) => a.rank - b.rank).slice(0, 10);
+      document.getElementById('top-clients').innerHTML = topScores.map((score, index) => {
+        const contract = score.acv < 1_000_000 ? `${fmtUsd(score.acv / 1_000, 0)}K` : fmtM(score.acv, 2);
+        return `<tr><td class="mono">${index + 1}</td><td class="mono">${esc(score.client_id)}</td><td>${esc(score.contract_tier)}</td><td class="num mono">${esc(contract)}</td><td class="num mono">${esc(fmtPct(score.p12, 0))}</td><td class="num mono">${esc(fmtPct(score.p3, 0))}</td><td>${esc(labelFor(score.driver))}</td></tr>`;
+      }).join('');
+
+      const topThree = drivers.slice(0, 3).reduce((sum, driver) => sum + driver.share, 0);
+      document.getElementById('top3-share').textContent = fmtPct(topThree, 0);
+      document.getElementById('driver-chart').innerHTML = drivers.map((driver) => `<div class="driver-row"><span class="driver-label">${esc(labelFor(driver.driver))}</span><span class="bar-track" aria-hidden="true"><span class="bar-fill" style="--bar:${(driver.share * 100).toFixed(2)}%"></span></span><span class="driver-value">${esc(fmtPct(driver.share, 0))}</span></div>`).join('');
+
+      const groups = { retained: [], churned: [] };
+      panel.forEach((row) => (Number(row.churn_12m) === 1 ? groups.churned : groups.retained).push(row));
+      const features = [
+        ['SLA breach rate', 'sla_breach_rate_90d', 'percent', 1],
+        ['Support response time P90', 'support_response_p90_hours_90d', 'hours', 1],
+        ['90-day spend change', 'spend_change_90d_pct', 'percent', 0],
+        ['Services per client', 'service_breadth_90d', 'number', 1],
+        ['Payment delay', 'payment_delay_days_avg_90d', 'days', 0]
+      ];
+      const average = (rows, key) => rows.length ? rows.reduce((sum, row) => sum + Number(row[key]), 0) / rows.length : 0;
+      const comparisons = features.map(([name, key, kind, digits]) => {
+        const retained = average(groups.retained, key);
+        const churned = average(groups.churned, key);
+        const format = (value) => kind === 'percent' ? fmtPct(value, digits) : kind === 'hours' ? `${fmtNum(value, 1)} h` : kind === 'days' ? `${fmtNum(value, 0)} days` : fmtNum(value, 1);
+        const difference = kind === 'percent' ? `${fmtNum((churned - retained) * 100, 1)} pp` : kind === 'hours' ? `${fmtNum(churned - retained, 1)} h` : kind === 'days' ? `${fmtNum(churned - retained, 0)} days` : fmtNum(churned - retained, 1);
+        return [name, format(retained), format(churned), difference];
+      });
+      document.getElementById('comparison-rows').innerHTML = comparisons.map((row) => `<tr><td><strong>${esc(row[0])}</strong></td><td class="num">${esc(row[1])}</td><td class="num">${esc(row[2])}</td><td class="num">${esc(row[3])}</td></tr>`).join('');
+
+      makeForecastSvg(monthly, baseline);
+      document.getElementById('baseline-total').textContent = fmtM(baseline);
+      document.getElementById('risk-total').textContent = fmtM(riskTotal);
+      document.getElementById('total-gap').textContent = fmtM(gap);
+      document.getElementById('gap-share').textContent = fmtPct(gap / baseline, 1);
+      document.getElementById('weighted-arr').textContent = fmtM(weightedAcv);
+      const quarterCount = Number(config.quarters_per_year);
+      const quarterMonths = months / quarterCount;
+      const quarters = [];
+      for (let quarter = 0; quarter < quarterCount; quarter += 1) {
+        const start = Math.floor(quarter * quarterMonths);
+        const end = Math.floor((quarter + 1) * quarterMonths);
+        const baselineQuarter = baseline / quarterCount;
+        const riskQuarter = monthly.slice(start, end).reduce((sum, value) => sum + value, 0);
+        quarters.push([`Q${quarter + 1}`, fmtM(baselineQuarter), fmtM(riskQuarter), fmtM(baselineQuarter - riskQuarter)]);
+      }
+      quarters.push(['Full year', fmtM(baseline), fmtM(riskTotal), fmtM(gap)]);
+      document.getElementById('quarterly-rows').innerHTML = quarters.map((row) => `<tr>${row.map((value, index) => `<td class="${index ? 'num mono' : ''}">${esc(value)}</td>`).join('')}</tr>`).join('');
+
+      const scenarioRates = [0.13, 0.15, 0.18];
+      const scenarioResults = new Map(scenarioRates.map((rate) => [rate, calculateScenario(scores, months, Number(config.historical_churn_rate), rate)]));
+      document.getElementById('scenario-lines').innerHTML = scenarioRates.map((rate) => {
+        const result = scenarioResults.get(rate);
+        return `<div>At ${fmtPct(rate, 0)}: ${fmtNum(result.clientsSaved, 1)} expected clients saved, ${fmtScenario(result.revenueProtected)} revenue protected and ${fmtScenario(result.targetRevenue)} target revenue.</div>`;
+      }).join('');
+      const defaultScenario = calculateScenario(scores, months, Number(config.historical_churn_rate), Number(simulator.default_target_churn_rate));
+      const targetExitCount = expectedAnnual - defaultScenario.clientsSaved;
+      document.getElementById('annual-exits').textContent = fmtNum(expectedAnnual, 1);
+      document.getElementById('target-exits').textContent = fmtNum(targetExitCount, 1);
+      document.getElementById('saved-clients').textContent = fmtNum(defaultScenario.clientsSaved, 1);
+      document.getElementById('flagged-average-acv').textContent = fmtM(flaggedAcv / Math.max(1, flagged.length), 2);
+      document.getElementById('acv-protected').textContent = fmtM(defaultScenario.clientsSaved * flaggedAcv / Math.max(1, flagged.length));
+      document.getElementById('sim-protected').textContent = fmtScenario(defaultScenario.revenueProtected);
+
+      const slider = document.getElementById('month-slider');
+      slider.max = String(months);
+      slider.value = '1';
+      slider.addEventListener('input', () => updateMonth(slider.value, monthly, baseline));
+      updateMonth(1, monthly, baseline);
+    }
+
+    async function loadReport() {
+      const note = document.getElementById('load-note');
+      try {
+        const files = ['./data/metrics.json', './data/scores.csv', './data/drivers.csv', './data/panel.csv'];
+        const texts = await Promise.all(files.map(async (url) => {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`Could not load ${url} (${response.status}).`);
+          return response.text();
+        }));
+        const metrics = JSON.parse(texts[0]);
+        const config = metrics.dataset_profile;
+        const riskMonths = Number(config.risk_horizon_months);
+        const months = Number(config.forecast_months);
+        const scores = parseCsv(texts[1]).map((row) => {
+          const p12 = Math.min(1, Math.max(0, Number(row.churn_probability_12m)));
+          return {
+            ...row,
+            acv: Number(row.acv_usd),
+            p12,
+            p3: 1 - Math.pow(1 - p12, riskMonths / months),
+            rank: Number(row.priority_rank),
+            flagged: String(row.first_wave_top_60).toLowerCase() === 'true',
+            driver: row.top_positive_driver
+          };
+        });
+        const drivers = parseCsv(texts[2]).map((row) => ({
+          ...row,
+          rank: Number(row.rank),
+          share: Number(row.share_of_total_shap),
+          driver: row.driver
+        })).sort((a, b) => a.rank - b.rank);
+        const panel = parseCsv(texts[3]);
+        renderReport(metrics, scores, drivers, panel);
+        note.textContent = `Data loaded · ${fmtNum(scores.length)} client records.`;
+        document.documentElement.classList.add('motion-ready');
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+            if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
+          }), { threshold: .12 });
+          document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
+        } else document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+      } catch (error) {
+        note.textContent = `Report data could not be loaded: ${error.message}`;
+        note.style.color = '#B3402A';
+        document.querySelectorAll('.reveal').forEach((element) => element.classList.add('visible'));
+      }
+    }
+    loadReport();
+  </script>
+</body>
+</html>
